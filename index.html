@@ -157,7 +157,7 @@
       <div class="stack">
         <p class="tag">Conseils d'utilisation</p>
         <h2>Poste de contrôle complet</h2>
-        <p>Le modèle utilise un maillage réaliste avec textures PBR, un éclairage HDRi simplifié et une animation de marche continue. Placez la caméra directement au-dessus pour obtenir une vue de dessus précise ou faites pivoter autour de l'axe vertical pour inspecter chaque phase du mouvement.</p>
+        <p>Le modèle utilise un maillage réaliste avec textures PBR, un éclairage HDRi simplifié et une animation de nage manuelle (crawl) continue. Placez la caméra directement au-dessus pour obtenir une vue de dessus précise ou faites pivoter autour de l'axe vertical pour inspecter chaque phase du mouvement.</p>
         <div class="callout">
           <strong>Gestes rapides :</strong>
           <ul>
@@ -166,7 +166,7 @@
             <li>Recentrer &amp; vue top place la caméra à la verticale pour observer les appuis et orientations.</li>
           </ul>
         </div>
-        <p>La scène charge un modèle animé (<em>Soldier</em> glTF) hébergé publiquement ; aucune installation n'est requise, ouvrez simplement ce fichier dans un navigateur moderne.</p>
+        <p>La scène charge un modèle animé (<em>Soldier</em> glTF) hébergé publiquement et reparamétré pour illustrer la nage ; aucune installation n'est requise, ouvrez simplement ce fichier dans un navigateur moderne.</p>
       </div>
     </section>
   </div>
@@ -235,6 +235,17 @@
     let mixer = null;
     let currentAction = null;
     let model = null;
+    const limbs = {
+      leftArm: null,
+      rightArm: null,
+      leftForeArm: null,
+      rightForeArm: null,
+      leftUpLeg: null,
+      rightUpLeg: null,
+      leftLeg: null,
+      rightLeg: null,
+      spine: null,
+    };
 
     const loader = new GLTFLoader();
     loader.load(
@@ -246,6 +257,18 @@
             child.castShadow = true;
             child.receiveShadow = true;
           }
+          if (child.isBone) {
+            const name = child.name.toLowerCase();
+            if (name.includes('leftarm')) limbs.leftArm = child;
+            if (name.includes('rightarm')) limbs.rightArm = child;
+            if (name.includes('leftforearm')) limbs.leftForeArm = child;
+            if (name.includes('rightforearm')) limbs.rightForeArm = child;
+            if (name.includes('leftupleg')) limbs.leftUpLeg = child;
+            if (name.includes('rightupleg')) limbs.rightUpLeg = child;
+            if (name.includes('leftleg')) limbs.leftLeg = child;
+            if (name.includes('rightleg')) limbs.rightLeg = child;
+            if (name.includes('spine2') || name === 'spine') limbs.spine = child;
+          }
         });
         model.scale.setScalar(1.25);
         model.position.set(0, 0.3, 0);
@@ -254,8 +277,13 @@
 
         if (gltf.animations?.length) {
           mixer = new THREE.AnimationMixer(model);
-          currentAction = mixer.clipAction(gltf.animations[0]);
+          const defaultClip = gltf.animations[0];
+          currentAction = mixer.clipAction(defaultClip);
           currentAction.play();
+          currentAction.enabled = false; // on repose sur une animation manuelle pour simuler la nage
+          mixer.stopAllAction();
+          mixer = null;
+          currentAction = null;
         }
 
         resetView();
@@ -278,7 +306,7 @@
     const swimSpeed = 0.35;
 
     function onResize() {
-      const { clientWidth, clientHeight } = canvas.parentElement;
+      const { clientWidth } = canvas.parentElement;
       renderer.setSize(clientWidth, 620);
       camera.aspect = clientWidth / 620;
       camera.updateProjectionMatrix();
@@ -300,7 +328,33 @@
 
         // Orienter le nageur dans le sens du déplacement tout en restant à l'horizontale
         const forwardAngle = angle + Math.PI / 2;
-        model.rotation.set(Math.PI / 2, forwardAngle, 0, 'YXZ');
+        const roll = Math.sin(elapsed * 1.6) * 0.12;
+        model.rotation.set(Math.PI / 2, forwardAngle, roll, 'YXZ');
+
+        // Animation manuelle pour simuler la brasse crawl
+        const stroke = Math.sin(elapsed * 2.2);
+        const kick = Math.sin(elapsed * 5.4);
+
+        if (limbs.leftArm && limbs.rightArm) {
+          limbs.leftArm.rotation.x = -Math.PI / 2 + stroke * 0.7;
+          limbs.rightArm.rotation.x = -Math.PI / 2 - stroke * 0.7;
+        }
+        if (limbs.leftForeArm && limbs.rightForeArm) {
+          limbs.leftForeArm.rotation.x = -0.4 + Math.max(stroke, 0) * 0.5;
+          limbs.rightForeArm.rotation.x = -0.4 + Math.max(-stroke, 0) * 0.5;
+        }
+        if (limbs.leftUpLeg && limbs.rightUpLeg) {
+          limbs.leftUpLeg.rotation.x = 0.35 + kick * 0.25;
+          limbs.rightUpLeg.rotation.x = 0.35 - kick * 0.25;
+        }
+        if (limbs.leftLeg && limbs.rightLeg) {
+          limbs.leftLeg.rotation.x = 0.1 + kick * 0.2;
+          limbs.rightLeg.rotation.x = 0.1 - kick * 0.2;
+        }
+        if (limbs.spine) {
+          limbs.spine.rotation.z = roll * 0.6;
+          limbs.spine.rotation.x = -0.15 + Math.sin(elapsed * 1.8) * 0.05;
+        }
       }
       controls.update();
       renderer.render(scene, camera);
