@@ -209,26 +209,38 @@
     dir.shadow.bias = -0.0002;
     scene.add(dir);
 
-    const floorGeo = new THREE.CircleGeometry(6, 64);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x0e1a2a, metalness: 0.4, roughness: 0.85, transparent: true, opacity: 0.6 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.receiveShadow = true;
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
+    const waterGeo = new THREE.PlaneGeometry(20, 20);
+    const waterMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0c2a3d,
+      metalness: 0.05,
+      roughness: 0.18,
+      transmission: 0.55,
+      thickness: 0.6,
+      clearcoat: 0.35,
+      clearcoatRoughness: 0.35,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const water = new THREE.Mesh(waterGeo, waterMat);
+    water.receiveShadow = true;
+    water.rotation.x = -Math.PI / 2;
+    scene.add(water);
 
-    const grid = new THREE.GridHelper(12, 24, 0x00e0ff, 0x224466);
-    grid.material.opacity = 0.18;
-    grid.material.transparent = true;
-    scene.add(grid);
+    const causticsGrid = new THREE.GridHelper(16, 32, 0x4ad1ff, 0x0f3a58);
+    causticsGrid.material.opacity = 0.14;
+    causticsGrid.material.transparent = true;
+    causticsGrid.position.y = -0.01;
+    scene.add(causticsGrid);
 
     let mixer = null;
     let currentAction = null;
+    let model = null;
 
     const loader = new GLTFLoader();
     loader.load(
       'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb',
       (gltf) => {
-        const model = gltf.scene;
+        model = gltf.scene;
         model.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
@@ -236,8 +248,8 @@
           }
         });
         model.scale.setScalar(1.25);
-        model.position.set(0, 0, 0);
-        model.rotation.y = Math.PI; // face la caméra initialement
+        model.position.set(0, 0.3, 0);
+        model.rotation.set(Math.PI / 2, Math.PI, 0, 'YXZ'); // posture horizontale vers l'avant
         scene.add(model);
 
         if (gltf.animations?.length) {
@@ -262,6 +274,8 @@
     }
 
     const clock = new THREE.Clock();
+    const swimRadius = 2.4;
+    const swimSpeed = 0.35;
 
     function onResize() {
       const { clientWidth, clientHeight } = canvas.parentElement;
@@ -273,7 +287,21 @@
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
+      const elapsed = clock.getElapsedTime();
+
+      if (mixer) mixer.update(delta * 0.9);
+
+      if (model) {
+        const angle = elapsed * swimSpeed;
+        const x = Math.cos(angle) * swimRadius;
+        const z = Math.sin(angle) * swimRadius;
+        const bob = Math.sin(elapsed * 2.4) * 0.06;
+        model.position.set(x, 0.32 + bob, z);
+
+        // Orienter le nageur dans le sens du déplacement tout en restant à l'horizontale
+        const forwardAngle = angle + Math.PI / 2;
+        model.rotation.set(Math.PI / 2, forwardAngle, 0, 'YXZ');
+      }
       controls.update();
       renderer.render(scene, camera);
     }
