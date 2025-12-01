@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brasse en piscine – Support intéractif</title>
+  <title>Homme 3D – Vue aérienne interactive</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0e172a;
-      --panel: rgba(255, 255, 255, 0.12);
+      --bg: #050915;
+      --panel: rgba(255, 255, 255, 0.07);
       --accent: #00e0ff;
-      --muted: #d0e3ff;
-      --text: #f4f7ff;
+      --muted: #d5e6ff;
+      --text: #f7fbff;
     }
 
     * { box-sizing: border-box; }
@@ -21,154 +21,76 @@
     body {
       margin: 0;
       font-family: 'Manrope', system-ui, -apple-system, sans-serif;
-      background: radial-gradient(circle at 20% 20%, #12355b, #0b1224 55%), radial-gradient(circle at 80% 0%, #0b2545, #0b1224 50%);
+      background: radial-gradient(circle at 20% 20%, #0d2b4f, #050915 65%), radial-gradient(circle at 85% 10%, #082036, #050915 60%);
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      align-items: stretch;
+      align-items: center;
       justify-content: center;
+      padding: 26px 16px 36px;
     }
 
-    .shell {
+    .layout {
+      width: min(1200px, 96vw);
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 28px;
-      width: min(1200px, 94vw);
-      padding: 28px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
-      overflow: hidden;
-      position: relative;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
     }
 
     header {
       grid-column: 1 / -1;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(0, 224, 255, 0.16), rgba(255, 255, 255, 0.06));
+      border: 1px solid rgba(0, 224, 255, 0.22);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 24px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(0, 224, 255, 0.18), rgba(10, 157, 255, 0.08));
-      border: 1px solid rgba(0, 224, 255, 0.18);
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
-      letter-spacing: -0.02em;
-    }
-
-    header p {
-      margin: 0;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    #scene-container {
-      position: relative;
-      height: 580px;
-    }
-
-    #three-canvas, #ui-layer {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    #ui-layer {
-      pointer-events: none;
-      display: flex;
-      align-items: flex-start;
-      padding: 18px;
-    }
-
-    .info-card {
-      display: inline-flex;
       gap: 12px;
-      align-items: center;
-      padding: 14px 18px;
-      background: linear-gradient(120deg, rgba(0, 224, 255, 0.2), rgba(255, 255, 255, 0.08));
-      border: 1px solid rgba(0, 224, 255, 0.25);
-      border-radius: 14px;
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
-      max-width: 360px;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.35s ease, transform 0.35s ease;
     }
 
-    .info-card.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    h1 { margin: 0; letter-spacing: -0.02em; }
+    header p { margin: 4px 0 0; color: var(--muted); }
 
-    .info-badge {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #00e0ff;
-      box-shadow: 0 0 0 6px rgba(0, 224, 255, 0.16);
-      flex-shrink: 0;
-    }
-
-    .info-step {
-      margin: 0;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-
-    .info-text {
-      margin: 6px 0 0;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 0.95rem;
-    }
-
-    .notes {
-      padding: 22px 22px 26px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .chip {
+    .tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.08);
-      color: var(--muted);
-      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      font-size: 0.78rem;
+      color: var(--muted);
+      font-size: 0.8rem;
     }
 
-    .phase-title {
-      font-size: 1.25rem;
-      margin: 0;
-      color: var(--text);
+    .panel {
+      background: var(--panel);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.38);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(8px);
     }
 
-    .phase-desc { margin: 0; color: var(--muted); line-height: 1.6; }
+    #viewer {
+      width: 100%;
+      height: 620px;
+      display: block;
+      background: radial-gradient(circle at 50% 30%, rgba(0, 224, 255, 0.12), rgba(0, 0, 0, 0.3));
+    }
 
-    .control-bar {
+    .controls {
+      position: absolute;
+      top: 14px;
+      right: 14px;
       display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 22px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -176,430 +98,190 @@
       border: none;
       background: linear-gradient(120deg, #00e0ff, #0acffe);
       color: #021221;
-      font-weight: 700;
-      padding: 12px 16px;
+      font-weight: 800;
+      padding: 10px 14px;
       border-radius: 12px;
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
-      min-width: 160px;
+      min-width: 150px;
+      box-shadow: 0 12px 24px rgba(0, 224, 255, 0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    button:hover { transform: translateY(-2px); box-shadow: 0 14px 24px rgba(0, 224, 255, 0.28); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 16px 28px rgba(0, 224, 255, 0.3); }
     button:active { transform: translateY(0); box-shadow: none; }
 
     .ghost {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.1);
       color: var(--text);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     }
 
-    .ghost:hover {
-      box-shadow: inset 0 0 0 1px rgba(0, 224, 255, 0.4);
-      transform: translateY(-2px);
-    }
+    .stack { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .stack h2 { margin: 0; }
+    .stack p { margin: 0; color: var(--muted); line-height: 1.6; }
 
-    .legend {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 6px;
-    }
-
-    .legend-card {
+    .callout {
+      padding: 14px 16px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.06);
-      border-radius: 14px;
-      padding: 12px 12px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    .legend-title { margin: 4px 0; font-weight: 700; }
-    .legend-text { margin: 0; color: var(--muted); font-size: 0.92rem; }
-
-    .progress {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transition: background 0.25s ease, transform 0.25s ease;
-    }
-
-    .dot.active { background: #00e0ff; transform: scale(1.05); }
+    ul { margin: 0 0 0 16px; color: var(--muted); line-height: 1.6; }
 
     @media (max-width: 1024px) {
-      .shell { grid-template-columns: 1fr; }
-      #scene-container { height: 460px; }
+      .layout { grid-template-columns: 1fr; }
+      #viewer { height: 520px; }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="layout">
     <header>
       <div>
-        <h1>Brasse en piscine – Atelier immersif</h1>
-        <p>Décomposez chaque mouvement de la brasse avec une animation stylisée et un coaching contextualisé.</p>
+        <h1>Homme réaliste en 3D – Vue aérienne</h1>
+        <p>Manipulez librement la caméra pour observer la posture sous tous les angles et suivre l'animation.</p>
       </div>
-      <span class="chip">Mode interactif</span>
+      <span class="tag">360° interactif</span>
     </header>
 
-    <section class="panel" id="scene-container">
-      <canvas id="three-canvas"></canvas>
-      <div id="ui-layer"></div>
+    <section class="panel" aria-label="visualisation 3D">
+      <canvas id="viewer"></canvas>
+      <div class="controls">
+        <button id="reset-view">Recentrer &amp; vue top</button>
+        <button id="toggle-autorotate" class="ghost">Auto-rotation</button>
+      </div>
     </section>
 
     <section class="panel">
-      <div class="notes">
-        <p class="chip">Séquence guidée</p>
-        <h2 class="phase-title" id="phase-title">Glissée hydrodynamique</h2>
-        <p class="phase-desc" id="phase-desc">Bras étendus et jambes serrées pour maximiser la glisse après l'impulsion murale.</p>
-        <div class="progress" id="progress"></div>
-        <div class="legend">
-          <div class="legend-card">
-            <p class="legend-title">Focus bras</p>
-            <p class="legend-text">Déployez puis ramenez avec fluidité : l'appui doit rester constant pour ne pas freiner la glisse.</p>
-          </div>
-          <div class="legend-card">
-            <p class="legend-title">Focus jambes</p>
-            <p class="legend-text">Le ciseau se ferme avec un léger fouetté vers l'intérieur pour propulser sans éclaboussures.</p>
-          </div>
-          <div class="legend-card">
-            <p class="legend-title">Respiration</p>
-            <p class="legend-text">Restez profilé : inspirez brièvement pendant l'in-sweep, expirez en continu pendant la glisse.</p>
-          </div>
+      <div class="stack">
+        <p class="tag">Conseils d'utilisation</p>
+        <h2>Poste de contrôle complet</h2>
+        <p>Le modèle utilise un maillage réaliste avec textures PBR, un éclairage HDRi simplifié et une animation de marche continue. Placez la caméra directement au-dessus pour obtenir une vue de dessus précise ou faites pivoter autour de l'axe vertical pour inspecter chaque phase du mouvement.</p>
+        <div class="callout">
+          <strong>Gestes rapides :</strong>
+          <ul>
+            <li>Maintenez le clic gauche pour orbiter, la molette pour zoomer, clic droit pour translater.</li>
+            <li>Activez l'auto-rotation pour un balayage continu du corps.</li>
+            <li>Recentrer &amp; vue top place la caméra à la verticale pour observer les appuis et orientations.</li>
+          </ul>
         </div>
-      </div>
-      <div class="control-bar">
-        <button id="next">Mouvement suivant ↗</button>
-        <button id="auto" class="ghost">Lecture auto</button>
-        <button id="restart" class="ghost">Revenir au début</button>
-        <small style="color: var(--muted);">5 étapes clés – cliquez pour parcourir la nage complète.</small>
+        <p>La scène charge un modèle animé (<em>Soldier</em> glTF) hébergé publiquement ; aucune installation n'est requise, ouvrez simplement ce fichier dans un navigateur moderne.</p>
       </div>
     </section>
   </div>
 
-  <script>
-    const sceneEl = document.getElementById('three-canvas');
-    const uiLayer = document.getElementById('ui-layer');
-    uiLayer.innerHTML = `<div class="info-card"><div class="info-badge"></div><div><p class="info-step"></p><p class="info-text"></p></div></div>`;
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.156.1/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.156.1/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@0.156.1/examples/jsm/loaders/GLTFLoader.js';
 
-    const ctx = sceneEl.getContext('2d');
-    let resizeObserver;
+    const canvas = document.getElementById('viewer');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const phases = [
-      {
-        title: 'Glissée hydrodynamique',
-        description: "Bras allongés vers l'avant, jambes serrées et chevilles pointées pour conserver la vitesse de départ.",
-        pose: {
-          arms: { x: -Math.PI * 0.02, y: 0, z: 0 },
-          forearms: { x: 0, y: 0, z: 0 },
-          legs: { x: 0, y: 0, z: 0 },
-          shins: { x: 0, y: 0, z: 0 },
-          head: { x: 0.1, y: 0, z: 0 },
-        },
-      },
-      {
-        title: 'Prise d\'appui',
-        description: "Les mains s'écartent légèrement vers l'extérieur, coudes hauts pour capter l'eau sans créer de turbulences.",
-        pose: {
-          arms: { x: -0.1, y: 0, z: 0.35 },
-          forearms: { x: 0.2, y: 0, z: 0.35 },
-          legs: { x: 0.08, y: 0, z: 0.12 },
-          shins: { x: -0.05, y: 0, z: 0.18 },
-          head: { x: 0.15, y: 0, z: 0 },
-        },
-      },
-      {
-        title: 'In-sweep + inspiration',
-        description: "Les avant-bras balayent vers l'intérieur, les mains rejoignent la poitrine : lève légèrement la tête pour inspirer.",
-        pose: {
-          arms: { x: -0.25, y: 0, z: -0.25 },
-          forearms: { x: 0.75, y: 0, z: -0.35 },
-          legs: { x: 0.15, y: 0, z: -0.25 },
-          shins: { x: 0.25, y: 0, z: -0.35 },
-          head: { x: 0.35, y: 0, z: 0 },
-        },
-      },
-      {
-        title: 'Récupération',
-        description: "Les bras se tendent vers l'avant et la tête se replace, pendant que les genoux fléchissent pour préparer le ciseau.",
-        pose: {
-          arms: { x: -0.02, y: 0, z: 0.12 },
-          forearms: { x: 0.15, y: 0, z: 0.12 },
-          legs: { x: 0.45, y: 0, z: 0.05 },
-          shins: { x: -0.45, y: 0, z: 0.1 },
-          head: { x: 0.08, y: 0, z: 0 },
-        },
-      },
-      {
-        title: 'Coup de pied propulsif',
-        description: "Les pieds fouettent vers l'extérieur puis se rejoignent en ligne : l'énergie se transfère sur la glisse suivante.",
-        pose: {
-          arms: { x: -0.05, y: 0, z: 0 },
-          forearms: { x: 0.1, y: 0, z: 0 },
-          legs: { x: -0.25, y: 0, z: 0.35 },
-          shins: { x: 0.45, y: 0, z: -0.35 },
-          head: { x: 0.1, y: 0, z: 0 },
-        },
-      },
-    ];
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-    const infoStep = uiLayer.querySelector('.info-step');
-    const infoText = uiLayer.querySelector('.info-text');
-    const infoCard = uiLayer.querySelector('.info-card');
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.minDistance = 1.8;
+    controls.maxDistance = 6;
+    controls.maxPolarAngle = Math.PI;
 
-    const basePose = phases[0].pose;
-    let currentPose = JSON.parse(JSON.stringify(basePose));
-    let poseAnimation = null;
-    let bubblesOffset = 0;
+    const hemi = new THREE.HemisphereLight(0xdff2ff, 0x0d1016, 0.75);
+    scene.add(hemi);
 
-    const easeInOut = (t) => 0.5 - Math.cos(Math.PI * t) / 2;
+    const dir = new THREE.DirectionalLight(0xffffff, 1.25);
+    dir.position.set(3, 6, 3);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(2048, 2048);
+    dir.shadow.bias = -0.0002;
+    scene.add(dir);
 
-    const lerp = (a, b, t) => a + (b - a) * t;
+    const floorGeo = new THREE.CircleGeometry(6, 64);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x0e1a2a, metalness: 0.4, roughness: 0.85, transparent: true, opacity: 0.6 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.receiveShadow = true;
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
 
-    const interpolatePose = (start, target, t) => ({
-      arms: {
-        x: lerp(start.arms.x, target.arms.x, t),
-        y: lerp(start.arms.y, target.arms.y, t),
-        z: lerp(start.arms.z, target.arms.z, t),
+    const grid = new THREE.GridHelper(12, 24, 0x00e0ff, 0x224466);
+    grid.material.opacity = 0.18;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+    let mixer = null;
+    let currentAction = null;
+
+    const loader = new GLTFLoader();
+    loader.load(
+      'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        model.scale.setScalar(1.25);
+        model.position.set(0, 0, 0);
+        model.rotation.y = Math.PI; // face la caméra initialement
+        scene.add(model);
+
+        if (gltf.animations?.length) {
+          mixer = new THREE.AnimationMixer(model);
+          currentAction = mixer.clipAction(gltf.animations[0]);
+          currentAction.play();
+        }
+
+        resetView();
       },
-      forearms: {
-        x: lerp(start.forearms.x, target.forearms.x, t),
-        y: lerp(start.forearms.y, target.forearms.y, t),
-        z: lerp(start.forearms.z, target.forearms.z, t),
-      },
-      legs: {
-        x: lerp(start.legs.x, target.legs.x, t),
-        y: lerp(start.legs.y, target.legs.y, t),
-        z: lerp(start.legs.z, target.legs.z, t),
-      },
-      shins: {
-        x: lerp(start.shins.x, target.shins.x, t),
-        y: lerp(start.shins.y, target.shins.y, t),
-        z: lerp(start.shins.z, target.shins.z, t),
-      },
-      head: {
-        x: lerp(start.head.x, target.head.x, t),
-        y: lerp(start.head.y, target.head.y, t),
-        z: lerp(start.head.z, target.head.z, t),
-      },
+      undefined,
+      (error) => {
+        console.error('Erreur de chargement du modèle', error);
+      }
+    );
+
+    function resetView() {
+      camera.position.set(0, 3.4, 0.01);
+      camera.lookAt(0, 1, 0);
+      controls.target.set(0, 1, 0);
+      controls.update();
+    }
+
+    const clock = new THREE.Clock();
+
+    function onResize() {
+      const { clientWidth, clientHeight } = canvas.parentElement;
+      renderer.setSize(clientWidth, 620);
+      camera.aspect = clientWidth / 620;
+      camera.updateProjectionMatrix();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer) mixer.update(delta);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    const autorotateButton = document.getElementById('toggle-autorotate');
+    autorotateButton.addEventListener('click', () => {
+      controls.autoRotate = !controls.autoRotate;
+      controls.autoRotateSpeed = 1.5;
+      autorotateButton.classList.toggle('ghost');
     });
 
-    const drawLimb = (start, length, angle, thickness, color) => {
-      const end = {
-        x: start.x + Math.cos(angle) * length,
-        y: start.y + Math.sin(angle) * length,
-      };
-      ctx.lineWidth = thickness;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(start.x, start.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
-      return end;
-    };
+    document.getElementById('reset-view').addEventListener('click', resetView);
 
-    const drawSwimmer = () => {
-      const { width, height } = sceneEl;
-      const center = { x: width * 0.42, y: height * 0.46 };
-      const scale = Math.min(width, height) * 0.12;
-
-      // body
-      ctx.fillStyle = '#77c2ff';
-      ctx.beginPath();
-      ctx.roundRect(center.x - scale * 0.6, center.y - scale * 0.12, scale * 1.5, scale * 0.24, scale * 0.12);
-      ctx.fill();
-
-      // head
-      ctx.fillStyle = '#00e0ff';
-      ctx.beginPath();
-      ctx.ellipse(center.x + scale * 0.9, center.y - scale * 0.08, scale * 0.18, scale * 0.16, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      const baseShoulder = { x: center.x + scale * 0.85, y: center.y - scale * 0.05 };
-      const baseHip = { x: center.x - scale * 0.55, y: center.y + scale * 0.08 };
-
-      const armAngle = currentPose.arms.z * 0.9 + currentPose.arms.x * 0.5;
-      const foreAngle = armAngle + currentPose.forearms.z * 0.9 + currentPose.forearms.x * 0.3;
-      const legAngle = -currentPose.legs.x * 0.8 + currentPose.legs.z * 0.6;
-      const shinAngle = legAngle + currentPose.shins.x * 0.9 + currentPose.shins.z * 0.6;
-
-      // left arm
-      const leftElbow = drawLimb(baseShoulder, scale * 0.6, armAngle + 0.15, 12, '#77c2ff');
-      drawLimb(leftElbow, scale * 0.5, foreAngle + 0.25, 10, '#00e0ff');
-
-      // right arm
-      const rightElbow = drawLimb(baseShoulder, scale * 0.6, armAngle - 0.15, 12, '#77c2ff');
-      drawLimb(rightElbow, scale * 0.5, foreAngle - 0.25, 10, '#00e0ff');
-
-      // left leg
-      const leftKnee = drawLimb(baseHip, scale * 0.58, legAngle + 0.08, 12, '#77c2ff');
-      drawLimb(leftKnee, scale * 0.5, shinAngle + 0.12, 11, '#00e0ff');
-
-      // right leg
-      const rightKnee = drawLimb(baseHip, scale * 0.58, legAngle - 0.08, 12, '#77c2ff');
-      drawLimb(rightKnee, scale * 0.5, shinAngle - 0.12, 11, '#00e0ff');
-
-      // water highlights
-      ctx.globalAlpha = 0.25;
-      ctx.fillStyle = '#0acffe';
-      ctx.beginPath();
-      ctx.ellipse(center.x, center.y + scale * 0.3, scale * 2.3, scale * 0.9 + Math.sin(bubblesOffset / 18) * scale * 0.08, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    };
-
-    const drawWater = () => {
-      const { width, height } = sceneEl;
-      const grad = ctx.createLinearGradient(0, 0, 0, height);
-      grad.addColorStop(0, '#0b1e3d');
-      grad.addColorStop(1, '#0a142b');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.strokeStyle = 'rgba(0, 224, 255, 0.25)';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      const laneY = height * 0.58;
-      ctx.moveTo(width * 0.06, laneY);
-      ctx.lineTo(width * 0.94, laneY);
-      ctx.stroke();
-    };
-
-    const render = (timestamp) => {
-      if (poseAnimation) {
-        const { start, target, began, duration } = poseAnimation;
-        const t = Math.min(1, (timestamp - began) / duration);
-        const eased = easeInOut(t);
-        currentPose = interpolatePose(start, target, eased);
-        if (t >= 1) poseAnimation = null;
-      }
-
-      bubblesOffset += 1;
-      ctx.clearRect(0, 0, sceneEl.width, sceneEl.height);
-      drawWater();
-      drawSwimmer();
-      requestAnimationFrame(render);
-    };
-
-    const applyPose = (pose) => {
-      const startPose = JSON.parse(JSON.stringify(currentPose));
-      poseAnimation = {
-        start: startPose,
-        target: pose,
-        began: performance.now(),
-        duration: 1100,
-      };
-    };
-
-    const resizeCanvas = () => {
-      sceneEl.width = sceneEl.clientWidth;
-      sceneEl.height = sceneEl.clientHeight;
-    };
-
-    const initScene = () => {
-      resizeCanvas();
-      resizeObserver = new ResizeObserver(resizeCanvas);
-      resizeObserver.observe(sceneEl);
-      requestAnimationFrame(render);
-    };
-
-    const updateCard = (phase, index) => {
-      infoStep.textContent = `Étape ${index + 1} · ${phase.title}`;
-      infoText.textContent = phase.description;
-      infoCard.classList.remove('visible');
-      requestAnimationFrame(() => infoCard.classList.add('visible'));
-    };
-
-    let currentPhase = 0;
-    let autoTimer = null;
-    let autoMode = false;
-
-    const goToPhase = (index) => {
-      currentPhase = (index + phases.length) % phases.length;
-      updatePhase(currentPhase);
-    };
-
-    const updatePhase = (index) => {
-      const phase = phases[index];
-      document.getElementById('phase-title').textContent = phase.title;
-      document.getElementById('phase-desc').textContent = phase.description;
-      applyPose(phase.pose);
-      updateCard(phase, index);
-      refreshDots(index);
-    };
-
-    const buildDots = () => {
-      const progress = document.getElementById('progress');
-      phases.forEach((_, i) => {
-        const dot = document.createElement('span');
-        dot.className = 'dot';
-        dot.dataset.index = i;
-        dot.addEventListener('click', () => {
-          currentPhase = i;
-          updatePhase(currentPhase);
-        });
-        progress.appendChild(dot);
-      });
-      refreshDots(0);
-    };
-
-    const refreshDots = (index) => {
-      document.querySelectorAll('.dot').forEach((dot, i) => {
-        dot.classList.toggle('active', i === index);
-      });
-    };
-
-    const toggleAuto = () => {
-      const autoBtn = document.getElementById('auto');
-      autoMode = !autoMode;
-      autoBtn.textContent = autoMode ? 'Pause auto' : 'Lecture auto';
-
-      if (autoMode) {
-        autoTimer = setInterval(() => {
-          goToPhase(currentPhase + 1);
-        }, 2400);
-      } else if (autoTimer) {
-        clearInterval(autoTimer);
-        autoTimer = null;
-      }
-    };
-
-    const init = () => {
-      initScene();
-      buildDots();
-      updatePhase(0);
-
-      document.getElementById('next').addEventListener('click', () => {
-        goToPhase(currentPhase + 1);
-      });
-
-      document.getElementById('restart').addEventListener('click', () => {
-        goToPhase(0);
-      });
-
-      document.getElementById('auto').addEventListener('click', toggleAuto);
-
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') {
-          goToPhase(currentPhase + 1);
-        }
-        if (e.key === 'ArrowLeft') {
-          goToPhase(currentPhase - 1);
-        }
-        if (e.key.toLowerCase() === 'a') {
-          toggleAuto();
-        }
-      });
-    };
-
-    window.addEventListener('load', init);
+    window.addEventListener('resize', onResize);
+    onResize();
+    animate();
   </script>
 </body>
 </html>
