@@ -117,10 +117,11 @@
     .control-bar {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       padding: 16px 22px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.03);
+      flex-wrap: wrap;
     }
 
     button {
@@ -137,6 +138,17 @@
 
     button:hover { transform: translateY(-2px); box-shadow: 0 14px 24px rgba(0, 224, 255, 0.28); }
     button:active { transform: translateY(0); box-shadow: none; }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    .ghost:hover {
+      box-shadow: inset 0 0 0 1px rgba(0, 224, 255, 0.4);
+      transform: translateY(-2px);
+    }
 
     .legend {
       display: grid;
@@ -216,6 +228,8 @@
       </div>
       <div class="control-bar">
         <button id="next">Mouvement suivant ↗</button>
+        <button id="auto" class="ghost">Lecture auto</button>
+        <button id="restart" class="ghost">Revenir au début</button>
         <small style="color: var(--muted);">5 étapes clés – cliquez pour parcourir la nage complète.</small>
       </div>
     </section>
@@ -517,6 +531,13 @@
     };
 
     let currentPhase = 0;
+    let autoTimer = null;
+    let autoMode = false;
+
+    const goToPhase = (index) => {
+      currentPhase = (index + phases.length) % phases.length;
+      updatePhase(currentPhase);
+    };
 
     const updatePhase = (index) => {
       const phase = phases[index];
@@ -548,14 +569,46 @@
       });
     };
 
+    const toggleAuto = () => {
+      const autoBtn = document.getElementById('auto');
+      autoMode = !autoMode;
+      autoBtn.textContent = autoMode ? 'Pause auto' : 'Lecture auto';
+
+      if (autoMode) {
+        autoTimer = setInterval(() => {
+          goToPhase(currentPhase + 1);
+        }, 2400);
+      } else if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+    };
+
     const init = () => {
       initScene();
       buildDots();
       updatePhase(0);
 
       document.getElementById('next').addEventListener('click', () => {
-        currentPhase = (currentPhase + 1) % phases.length;
-        updatePhase(currentPhase);
+        goToPhase(currentPhase + 1);
+      });
+
+      document.getElementById('restart').addEventListener('click', () => {
+        goToPhase(0);
+      });
+
+      document.getElementById('auto').addEventListener('click', toggleAuto);
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+          goToPhase(currentPhase + 1);
+        }
+        if (e.key === 'ArrowLeft') {
+          goToPhase(currentPhase - 1);
+        }
+        if (e.key.toLowerCase() === 'a') {
+          toggleAuto();
+        }
       });
     };
 
