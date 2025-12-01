@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brasse en piscine – Support intéractif</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0e172a;
+      --panel: rgba(255, 255, 255, 0.12);
+      --accent: #00e0ff;
+      --muted: #d0e3ff;
+      --text: #f4f7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #12355b, #0b1224 55%), radial-gradient(circle at 80% 0%, #0b2545, #0b1224 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      width: min(1200px, 94vw);
+      padding: 28px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      position: relative;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(0, 224, 255, 0.18), rgba(10, 157, 255, 0.08));
+      border: 1px solid rgba(0, 224, 255, 0.18);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    #scene-container {
+      position: relative;
+      height: 580px;
+    }
+
+    #three-canvas, #ui-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #ui-layer { pointer-events: none; }
+
+    .notes {
+      padding: 22px 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+    }
+
+    .phase-title {
+      font-size: 1.25rem;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .phase-desc { margin: 0; color: var(--muted); line-height: 1.6; }
+
+    .control-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(120deg, #00e0ff, #0acffe);
+      color: #021221;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      min-width: 160px;
+    }
+
+    button:hover { transform: translateY(-2px); box-shadow: 0 14px 24px rgba(0, 224, 255, 0.28); }
+    button:active { transform: translateY(0); box-shadow: none; }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .legend-card {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 12px 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .legend-title { margin: 4px 0; font-weight: 700; }
+    .legend-text { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+    .progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+
+    .dot.active { background: #00e0ff; transform: scale(1.05); }
+
+    @media (max-width: 1024px) {
+      .shell { grid-template-columns: 1fr; }
+      #scene-container { height: 460px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Brasse en piscine – Atelier immersif</h1>
+        <p>Décomposez chaque mouvement de la brasse avec un modèle 3D animé et un coaching contextualisé.</p>
+      </div>
+      <span class="chip">Mode interactif</span>
+    </header>
+
+    <section class="panel" id="scene-container">
+      <canvas id="three-canvas"></canvas>
+      <canvas id="ui-layer"></canvas>
+    </section>
+
+    <section class="panel">
+      <div class="notes">
+        <p class="chip">Séquence guidée</p>
+        <h2 class="phase-title" id="phase-title">Glissée hydrodynamique</h2>
+        <p class="phase-desc" id="phase-desc">Bras étendus et jambes serrées pour maximiser la glisse après l'impulsion murale.</p>
+        <div class="progress" id="progress"></div>
+        <div class="legend">
+          <div class="legend-card">
+            <p class="legend-title">Focus bras</p>
+            <p class="legend-text">Déployez puis ramenez avec fluidité : l'appui doit rester constant pour ne pas freiner la glisse.</p>
+          </div>
+          <div class="legend-card">
+            <p class="legend-title">Focus jambes</p>
+            <p class="legend-text">Le ciseau se ferme avec un léger fouetté vers l'intérieur pour propulser sans éclaboussures.</p>
+          </div>
+          <div class="legend-card">
+            <p class="legend-title">Respiration</p>
+            <p class="legend-text">Restez profilé : inspirez brièvement pendant l'in-sweep, expirez en continu pendant la glisse.</p>
+          </div>
+        </div>
+      </div>
+      <div class="control-bar">
+        <button id="next">Mouvement suivant ↗</button>
+        <small style="color: var(--muted);">5 étapes clés – cliquez pour parcourir la nage complète.</small>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+  <script>
+    const sceneEl = document.getElementById('three-canvas');
+    const uiLayer = document.getElementById('ui-layer');
+
+    let scene, camera, renderer, swimmer, mixer;
+    let resizeObserver;
+
+    const phases = [
+      {
+        title: 'Glissée hydrodynamique',
+        description: "Bras allongés vers l'avant, jambes serrées et chevilles pointées pour conserver la vitesse de départ.",
+        pose: {
+          arms: { x: -Math.PI * 0.02, y: 0, z: 0 },
+          forearms: { x: 0, y: 0, z: 0 },
+          legs: { x: 0, y: 0, z: 0 },
+          shins: { x: 0, y: 0, z: 0 },
+          head: { x: 0.1, y: 0, z: 0 },
+        },
+      },
+      {
+        title: 'Prise d\'appui',
+        description: "Les mains s'écartent légèrement vers l'extérieur, coudes hauts pour capter l'eau sans créer de turbulences.",
+        pose: {
+          arms: { x: -0.1, y: 0, z: 0.35 },
+          forearms: { x: 0.2, y: 0, z: 0.35 },
+          legs: { x: 0.08, y: 0, z: 0.12 },
+          shins: { x: -0.05, y: 0, z: 0.18 },
+          head: { x: 0.15, y: 0, z: 0 },
+        },
+      },
+      {
+        title: 'In-sweep + inspiration',
+        description: "Les avant-bras balayent vers l'intérieur, les mains rejoignent la poitrine : lève légèrement la tête pour inspirer.",
+        pose: {
+          arms: { x: -0.25, y: 0, z: -0.25 },
+          forearms: { x: 0.75, y: 0, z: -0.35 },
+          legs: { x: 0.15, y: 0, z: -0.25 },
+          shins: { x: 0.25, y: 0, z: -0.35 },
+          head: { x: 0.35, y: 0, z: 0 },
+        },
+      },
+      {
+        title: 'Récupération',
+        description: "Les bras se tendent vers l'avant et la tête se replace, pendant que les genoux fléchissent pour préparer le ciseau.",
+        pose: {
+          arms: { x: -0.02, y: 0, z: 0.12 },
+          forearms: { x: 0.15, y: 0, z: 0.12 },
+          legs: { x: 0.45, y: 0, z: 0.05 },
+          shins: { x: -0.45, y: 0, z: 0.1 },
+          head: { x: 0.08, y: 0, z: 0 },
+        },
+      },
+      {
+        title: 'Coup de pied propulsif',
+        description: "Les pieds fouettent vers l'extérieur puis se rejoignent en ligne : l'énergie se transfère sur la glisse suivante.",
+        pose: {
+          arms: { x: -0.05, y: 0, z: 0 },
+          forearms: { x: 0.1, y: 0, z: 0 },
+          legs: { x: -0.25, y: 0, z: 0.35 },
+          shins: { x: 0.45, y: 0, z: -0.35 },
+          head: { x: 0.1, y: 0, z: 0 },
+        },
+      },
+    ];
+
+    const createSwimmer = () => {
+      const group = new THREE.Group();
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x77c2ff, metalness: 0.15, roughness: 0.45 });
+      const accentMaterial = new THREE.MeshStandardMaterial({ color: 0x00e0ff, metalness: 0.25, roughness: 0.35 });
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 0.4), bodyMaterial);
+      torso.position.set(0, 0, 0);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), accentMaterial);
+      head.position.set(0.9, 0.05, 0);
+
+      // Arms
+      const leftArm = new THREE.Group();
+      const rightArm = new THREE.Group();
+
+      const upperArmGeo = new THREE.BoxGeometry(0.55, 0.18, 0.18);
+      const foreArmGeo = new THREE.BoxGeometry(0.45, 0.16, 0.16);
+
+      const leftUpper = new THREE.Mesh(upperArmGeo, bodyMaterial);
+      const leftLower = new THREE.Mesh(foreArmGeo, accentMaterial);
+      leftUpper.position.set(-0.4, 0, 0);
+      leftLower.position.set(-0.45, 0, 0);
+      leftLower.rotation.set(0, 0, 0);
+      leftArm.add(leftUpper);
+      leftLower.position.x = -0.45;
+      leftArm.add(leftLower);
+      leftArm.position.set(0.9, 0.18, 0.28);
+      leftArm.rotation.set(0, 0, 0.3);
+
+      const rightUpper = new THREE.Mesh(upperArmGeo, bodyMaterial);
+      const rightLower = new THREE.Mesh(foreArmGeo, accentMaterial);
+      rightUpper.position.set(-0.4, 0, 0);
+      rightLower.position.set(-0.45, 0, 0);
+      rightArm.add(rightUpper);
+      rightArm.add(rightLower);
+      rightArm.position.set(0.9, 0.18, -0.28);
+      rightArm.rotation.set(0, 0, -0.3);
+
+      // Legs
+      const leftLeg = new THREE.Group();
+      const rightLeg = new THREE.Group();
+
+      const thighGeo = new THREE.BoxGeometry(0.6, 0.2, 0.2);
+      const shinGeo = new THREE.BoxGeometry(0.5, 0.18, 0.18);
+
+      const leftThigh = new THREE.Mesh(thighGeo, bodyMaterial);
+      const leftShin = new THREE.Mesh(shinGeo, accentMaterial);
+      leftThigh.position.set(-0.3, 0, 0);
+      leftShin.position.set(-0.45, 0, 0);
+      leftLeg.add(leftThigh);
+      leftLeg.add(leftShin);
+      leftLeg.position.set(-0.6, -0.12, 0.26);
+
+      const rightThigh = new THREE.Mesh(thighGeo, bodyMaterial);
+      const rightShin = new THREE.Mesh(shinGeo, accentMaterial);
+      rightThigh.position.set(-0.3, 0, 0);
+      rightShin.position.set(-0.45, 0, 0);
+      rightLeg.add(rightThigh);
+      rightLeg.add(rightShin);
+      rightLeg.position.set(-0.6, -0.12, -0.26);
+
+      const body = new THREE.Group();
+      body.add(torso);
+      body.add(head);
+      body.add(leftArm);
+      body.add(rightArm);
+      body.add(leftLeg);
+      body.add(rightLeg);
+      body.position.set(0, 0.4, 0);
+
+      body.userData = {
+        parts: {
+          head,
+          leftArm,
+          rightArm,
+          leftForearm: leftLower,
+          rightForearm: rightLower,
+          leftLeg,
+          rightLeg,
+          leftShin,
+          rightShin,
+        },
+      };
+
+      group.add(body);
+      return group;
+    };
+
+    const applyPose = (pose) => {
+      const { leftArm, rightArm, leftForearm, rightForearm, leftLeg, rightLeg, leftShin, rightShin, head } = swimmer.userData.parts;
+      const duration = 1.1;
+      const ease = 'sine.inOut';
+
+      gsap.to([leftArm.rotation, rightArm.rotation], { z: pose.arms.z, x: pose.arms.x, y: pose.arms.y, duration, ease });
+      gsap.to([leftForearm.rotation, rightForearm.rotation], { z: pose.forearms.z, x: pose.forearms.x, y: pose.forearms.y || 0, duration, ease });
+      gsap.to([leftLeg.rotation, rightLeg.rotation], { z: pose.legs.z, x: pose.legs.x, y: pose.legs.y || 0, duration, ease });
+      gsap.to([leftShin.rotation, rightShin.rotation], { z: pose.shins.z, x: pose.shins.x, y: pose.shins.y || 0, duration, ease });
+      gsap.to(head.rotation, { x: pose.head.x, y: pose.head.y || 0, z: pose.head.z, duration, ease });
+    };
+
+    const createPool = () => {
+      const pool = new THREE.Group();
+      const waterGeo = new THREE.PlaneGeometry(14, 6, 32, 32);
+      const waterMat = new THREE.MeshPhysicalMaterial({
+        color: 0x0c6cf5,
+        transparent: true,
+        opacity: 0.7,
+        roughness: 0.08,
+        metalness: 0.05,
+        transmission: 0.8,
+        thickness: 0.6,
+      });
+      const water = new THREE.Mesh(waterGeo, waterMat);
+      water.rotation.x = -Math.PI / 2;
+      water.position.y = 0;
+      pool.add(water);
+
+      const laneGeo = new THREE.BoxGeometry(14, 0.02, 0.08);
+      const laneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00e0ff, emissiveIntensity: 0.35 });
+      const lane = new THREE.Mesh(laneGeo, laneMat);
+      lane.position.set(0, 0.02, 0);
+      pool.add(lane);
+
+      const glow = new THREE.Mesh(new THREE.PlaneGeometry(14, 6), new THREE.MeshBasicMaterial({ color: 0x0acffe, transparent: true, opacity: 0.08 }));
+      glow.rotation.x = -Math.PI / 2;
+      glow.position.y = -0.001;
+      pool.add(glow);
+
+      return pool;
+    };
+
+    const initScene = () => {
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x071020, 0.08);
+
+      camera = new THREE.PerspectiveCamera(42, sceneEl.clientWidth / sceneEl.clientHeight, 0.1, 100);
+      camera.position.set(4, 1.8, 3);
+      camera.lookAt(0, 0.3, 0);
+
+      renderer = new THREE.WebGLRenderer({ canvas: sceneEl, antialias: true, alpha: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
+      renderer.shadowMap.enabled = true;
+
+      const hemi = new THREE.HemisphereLight(0xa5d4ff, 0x0a1222, 0.9);
+      scene.add(hemi);
+
+      const key = new THREE.DirectionalLight(0xffffff, 1.1);
+      key.position.set(5, 4, 3);
+      key.castShadow = true;
+      key.shadow.mapSize.set(1024, 1024);
+      scene.add(key);
+
+      const rim = new THREE.PointLight(0x00e0ff, 0.75, 8);
+      rim.position.set(-2, 1.6, -2);
+      scene.add(rim);
+
+      const pool = createPool();
+      scene.add(pool);
+
+      swimmer = createSwimmer();
+      swimmer.traverse((child) => {
+        if (child.isMesh) child.castShadow = true;
+      });
+      scene.add(swimmer);
+
+      const bubbles = new THREE.Points(
+        new THREE.BufferGeometry().setFromPoints(
+          Array.from({ length: 200 }, () => new THREE.Vector3((Math.random() - 0.5) * 12, Math.random() * 1.8, (Math.random() - 0.5) * 4))
+        ),
+        new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 0.7 })
+      );
+      scene.add(bubbles);
+
+      gsap.to(bubbles.position, { y: "+=0.4", duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+      const animate = () => {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      resizeObserver = new ResizeObserver(() => {
+        camera.aspect = sceneEl.clientWidth / sceneEl.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
+      });
+      resizeObserver.observe(sceneEl);
+    };
+
+    const stage = new createjs.Stage(uiLayer);
+
+    const buildCard = () => {
+      const bg = new createjs.Shape();
+      bg.graphics.beginLinearGradientFill(['rgba(0,224,255,0.12)', 'rgba(255,255,255,0)'], [0, 1], 0, 0, 280, 0).drawRoundRect(0, 0, 320, 120, 14);
+      bg.shadow = new createjs.Shadow('#00e0ff', 0, 8, 20);
+      bg.alpha = 0.75;
+
+      const title = new createjs.Text('', '20px Manrope', '#f4f7ff');
+      title.x = 18; title.y = 16;
+      title.name = 'title';
+
+      const desc = new createjs.Text('', '14px Manrope', '#d0e3ff');
+      desc.lineWidth = 280; desc.x = 18; desc.y = 46;
+      desc.name = 'desc';
+
+      const badge = new createjs.Shape();
+      badge.graphics.beginFill('#00e0ff').drawCircle(0, 0, 6);
+      badge.x = 300; badge.y = 24;
+
+      const container = new createjs.Container();
+      container.addChild(bg, title, desc, badge);
+      container.x = 26;
+      container.y = 26;
+      container.alpha = 0;
+      stage.addChild(container);
+      return container;
+    };
+
+    const infoCard = buildCard();
+
+    const updateCard = (phase, index) => {
+      infoCard.getChildByName('title').text = `Étape ${index + 1} · ${phase.title}`;
+      infoCard.getChildByName('desc').text = phase.description;
+      gsap.to(infoCard, { alpha: 1, duration: 0.35, ease: 'sine.out' });
+      stage.update();
+    };
+
+    let currentPhase = 0;
+
+    const updatePhase = (index) => {
+      const phase = phases[index];
+      document.getElementById('phase-title').textContent = phase.title;
+      document.getElementById('phase-desc').textContent = phase.description;
+      applyPose(phase.pose);
+      updateCard(phase, index);
+      refreshDots(index);
+    };
+
+    const buildDots = () => {
+      const progress = document.getElementById('progress');
+      phases.forEach((_, i) => {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.dataset.index = i;
+        dot.addEventListener('click', () => {
+          currentPhase = i;
+          updatePhase(currentPhase);
+        });
+        progress.appendChild(dot);
+      });
+      refreshDots(0);
+    };
+
+    const refreshDots = (index) => {
+      document.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+      });
+    };
+
+    const init = () => {
+      initScene();
+      buildDots();
+      updatePhase(0);
+
+      document.getElementById('next').addEventListener('click', () => {
+        currentPhase = (currentPhase + 1) % phases.length;
+        updatePhase(currentPhase);
+      });
+    };
+
+    window.addEventListener('load', () => {
+      init();
+      createjs.Ticker.framerate = 60;
+      createjs.Ticker.on('tick', stage);
+    });
+  </script>
+</body>
+</html>
