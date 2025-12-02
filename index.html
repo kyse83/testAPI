@@ -139,8 +139,8 @@
   <div class="layout">
     <header>
       <div>
-        <h1>Homme réaliste en 3D – Vue aérienne</h1>
-        <p>Manipulez librement la caméra pour observer la posture sous tous les angles et suivre l'animation.</p>
+        <h1>Nageur 3D en piscine – Vue aérienne</h1>
+        <p>Manipulez librement la caméra pour observer la nage sous tous les angles et suivre le déplacement dans le bassin.</p>
       </div>
       <span class="tag">360° interactif</span>
     </header>
@@ -157,7 +157,7 @@
       <div class="stack">
         <p class="tag">Conseils d'utilisation</p>
         <h2>Poste de contrôle complet</h2>
-        <p>Le modèle utilise un maillage réaliste avec textures PBR, un éclairage HDRi simplifié et une animation de nage manuelle (crawl) continue. Placez la caméra directement au-dessus pour obtenir une vue de dessus précise ou faites pivoter autour de l'axe vertical pour inspecter chaque phase du mouvement.</p>
+        <p>Le modèle de nageur utilise un maillage réaliste avec textures PBR, un éclairage HDRi simplifié et une animation de crawl pilotée par code. Placez la caméra directement au-dessus pour obtenir une vue de dessus précise ou faites pivoter autour de l'axe vertical pour inspecter chaque phase du mouvement.</p>
         <div class="callout">
           <strong>Gestes rapides :</strong>
           <ul>
@@ -166,7 +166,7 @@
             <li>Recentrer &amp; vue top place la caméra à la verticale pour observer les appuis et orientations.</li>
           </ul>
         </div>
-        <p>La scène charge un modèle animé (<em>Soldier</em> glTF) hébergé publiquement et reparamétré pour illustrer la nage ; aucune installation n'est requise, ouvrez simplement ce fichier dans un navigateur moderne.</p>
+        <p>La scène charge un modèle glTF de nageur (<em>CesiumMan</em>) hébergé publiquement, reparamétré pour une posture horizontale et animé pour simuler la nage ; aucune installation n'est requise, ouvrez simplement ce fichier dans un navigateur moderne.</p>
       </div>
     </section>
   </div>
@@ -249,7 +249,7 @@
 
     const loader = new GLTFLoader();
     loader.load(
-      'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb',
+      'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb',
       (gltf) => {
         model = gltf.scene;
         model.traverse((child) => {
@@ -270,8 +270,8 @@
             if (name.includes('spine2') || name === 'spine') limbs.spine = child;
           }
         });
-        model.scale.setScalar(1.25);
-        model.position.set(0, 0.3, 0);
+        model.scale.setScalar(1.2);
+        model.position.set(0, 0.32, 0);
         model.rotation.set(Math.PI / 2, Math.PI, 0, 'YXZ'); // posture horizontale vers l'avant
         scene.add(model);
 
